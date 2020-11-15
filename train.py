@@ -27,7 +27,7 @@ def train(rank, a, h):
                            world_size=h.dist_config['world_size'] * h.num_gpus, rank=rank)
 
     torch.cuda.manual_seed(h.seed)
-    device = torch.device('cuda:{:d}'.format(rank))
+    device = torch.device('cuda:{:d}'.format(a.rank))
 
     generator = Generator(h).to(device)
     mpd = MultiPeriodDiscriminator().to(device)
@@ -234,7 +234,7 @@ def main():
     parser.add_argument('--input_mels_dir', default='ft_dataset')
     parser.add_argument('--input_training_file', default='LJSpeech-1.1/training.txt')
     parser.add_argument('--input_validation_file', default='LJSpeech-1.1/validation.txt')
-    parser.add_argument('--checkpoint_path', default='cp_hifigan')
+    parser.add_argument('--checkpoint_path', default='experiments')
     parser.add_argument('--config', default='')
     parser.add_argument('--training_epochs', default=3100, type=int)
     parser.add_argument('--stdout_interval', default=5, type=int)
@@ -242,8 +242,10 @@ def main():
     parser.add_argument('--summary_interval', default=100, type=int)
     parser.add_argument('--validation_interval', default=1000, type=int)
     parser.add_argument('--fine_tuning', default=False, type=bool)
-
+    parser.add_argument('--rank', '-r', default='0', type=str)
     a = parser.parse_args()
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = a.rank
 
     with open(a.config) as f:
         data = f.read()
@@ -255,7 +257,7 @@ def main():
     torch.manual_seed(h.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(h.seed)
-        h.num_gpus = torch.cuda.device_count()
+        h.num_gpus = 1
         h.batch_size = int(h.batch_size / h.num_gpus)
         print('Batch size per GPU :', h.batch_size)
     else:
