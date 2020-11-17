@@ -45,7 +45,7 @@ def load_checkpoint(filepath, device):
 
 def save_checkpoint(filepath, obj):
     print("Saving checkpoint to {}".format(filepath))
-    torch.save(obj, filepath)
+    torch.save(obj, filepath, _use_new_zipfile_serialization=False)
     print("Complete.")
 
 
